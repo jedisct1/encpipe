@@ -41,6 +41,10 @@ have any dependencies besides the standard C library.
 make install
 ```
 
+# Why
+
+It was faster to write than remember how to use GnuPG and OpenSSL.
+
 # Yes
 
 It's using passwords. Provided on the command-line. Yes, it actually
