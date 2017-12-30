@@ -23,7 +23,7 @@ encpipe: $(OBJ)
 	$(CC) $(CFLAGS) -o encpipe $(OBJ)
 
 install: bin
-	-$(STRIP) encpipe 2> /dev/null
+	-$(STRIP) --strip-all encpipe 2> /dev/null || $(STRIP) encpipe 2> /dev/null
 	mkdir -p $(PREFIX)/bin
 	install -o 0 -g 0 -m 0755 encpipe $(PREFIX)/bin 2> /dev/null || install -m 0755 encpipe $(PREFIX)/bin
 
