@@ -1,6 +1,8 @@
 Encpipe
 =======
 
+The dum^H^H^Hsimplest encryption tool in the world.
+
 # Usage
 
 Encrypt a file using a password:
