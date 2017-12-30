@@ -104,9 +104,9 @@ stream_encrypt(Context *ctx)
     ssize_t              max_chunk_size;
     ssize_t              chunk_size;
 
-    assert(ctx->sizeof_buf > 4 + hydro_secretbox_HEADERBYTES);
+    assert(ctx->sizeof_buf >= 4 + hydro_secretbox_HEADERBYTES);
     max_chunk_size = ctx->sizeof_buf - 4 - hydro_secretbox_HEADERBYTES;
-    assert(max_chunk_size < 0x7fffffff);
+    assert(max_chunk_size <= 0x7fffffff);
     chunk_id = 0;
     while ((chunk_size =
                 safe_read_partial(ctx->fd_in, chunk, max_chunk_size)) >= 0) {
@@ -144,9 +144,9 @@ stream_decrypt(Context *ctx)
     ssize_t              max_chunk_size;
     ssize_t              chunk_size;
 
-    assert(ctx->sizeof_buf > 4 + hydro_secretbox_HEADERBYTES);
+    assert(ctx->sizeof_buf >= 4 + hydro_secretbox_HEADERBYTES);
     max_chunk_size = ctx->sizeof_buf - 4 - hydro_secretbox_HEADERBYTES;
-    assert(max_chunk_size < 0x7fffffff);
+    assert(max_chunk_size <= 0x7fffffff);
     chunk_id = 0;
     while ((readnb = safe_read(ctx->fd_in, chunk_size_p, 4)) == 4) {
         chunk_size = LOAD32_LE(chunk_size_p);
