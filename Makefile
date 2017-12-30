@@ -2,17 +2,17 @@ PREFIX ?= /usr/local
 WFLAGS ?= -Wall -Wextra -Wmissing-prototypes -Wdiv-by-zero -Wbad-function-cast -Wcast-align -Wcast-qual -Wfloat-equal -Wmissing-declarations -Wnested-externs -Wno-unknown-pragmas -Wpointer-arith -Wredundant-decls -Wstrict-prototypes -Wswitch-enum -Wno-type-limits
 CFLAGS ?= -Os -march=native -fno-exceptions $(WFLAGS)
 CFLAGS += -I.
-OBJ = encpipe.o safe_rw.o
+OBJ = src/encpipe.o src/safe_rw.o
 AR ?= ar
 RANLIB ?= ranlib
 STRIP ?= strip
 
 SRC = \
-	common.h \
-	encpipe.c \
-	encpipe_p.h \
-	safe_rw.c \
-	safe_rw.h
+	src/common.h \
+	src/encpipe.c \
+	src/encpipe_p.h \
+	src/safe_rw.c \
+	src/safe_rw.h
 
 all: bin
 
