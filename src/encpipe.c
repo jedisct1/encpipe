@@ -83,8 +83,7 @@ derive_key(Context *ctx)
     if (hydro_pwhash_deterministic(ctx->key, sizeof ctx->key, ctx->password, password_len,
                                    HYDRO_CONTEXT, master_key, PWHASH_OPSLIMIT, PWHASH_MEMLIMIT,
                                    PWHASH_THREADS) != 0) {
-        fprintf(stderr, "Password hashing failed\n");
-        exit(1);
+        die("Password hashing failed");
     }
     hydro_memzero(ctx->password, password_len);
 }
@@ -106,13 +105,11 @@ stream_encrypt(Context *ctx)
         STORE32_LE(chunk_size_p, (uint32_t) chunk_size);
         if (hydro_secretbox_encrypt(chunk, chunk, chunk_size, chunk_id, HYDRO_CONTEXT, ctx->key) !=
             0) {
-            fprintf(stderr, "Encryption error\n");
-            exit(1);
+            die("Encryption error");
         }
         if (safe_write(ctx->fd_out, chunk_size_p,
                        4 + hydro_secretbox_HEADERBYTES + (size_t) chunk_size, -1) < 0) {
-            perror("write()");
-            exit(1);
+            diex("write()");
         }
         if (chunk_size == 0) {
             break;
@@ -120,8 +117,7 @@ stream_encrypt(Context *ctx)
         chunk_id++;
     }
     if (chunk_size < 0) {
-        perror("read()");
-        exit(1);
+        diex("read()");
     }
     return 0;
 }
@@ -155,28 +151,24 @@ stream_decrypt(Context *ctx)
                                     chunk_id, HYDRO_CONTEXT, ctx->key) != 0) {
             fprintf(stderr, "Unable to decrypt chunk #%" PRIu64 " - ", chunk_id);
             if (chunk_id == 0) {
-                fprintf(stderr, "Wrong password or key?\n");
+                die("Wrong password or key?");
             } else {
-                fprintf(stderr, "Corrupted or incomplete file?\n");
+                die("Corrupted or incomplete file?");
             }
-            exit(1);
         }
         if (chunk_size == 0) {
             break;
         }
         if (safe_write(ctx->fd_out, chunk, chunk_size, -1) < 0) {
-            perror("write()");
-            exit(1);
+            diex("write()");
         }
         chunk_id++;
     }
     if (readnb < 0) {
-        perror("read()");
-        exit(1);
+        diex("read()");
     }
     if (chunk_size != 0) {
-        fprintf(stderr, "Premature end of file\n");
-        exit(1);
+        die("Premature end of file");
     }
     return 0;
 }
@@ -187,8 +179,7 @@ main(int argc, char *argv[])
     Context ctx;
 
     if (hydro_init() < 0) {
-        fprintf(stderr, "Unable to initialize the crypto library");
-        exit(1);
+        diex("Unable to initialize the crypto library");
     }
     memset(&ctx, 0, sizeof ctx);
     options_parse(&ctx, argc, argv);
@@ -200,8 +191,7 @@ main(int argc, char *argv[])
         ctx.sizeof_buf = MAX_BUFFER_SIZE;
     }
     if ((ctx.buf = malloc(ctx.sizeof_buf)) == NULL) {
-        perror("malloc()");
-        exit(1);
+        diex("malloc()");
     }
     assert(sizeof HYDRO_CONTEXT == hydro_secretbox_CONTEXTBYTES);
 

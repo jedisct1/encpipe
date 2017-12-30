@@ -25,4 +25,18 @@ store32_le(uint8_t dst[4], uint32_t w)
     dst[3] = (uint8_t) w;
 }
 
+static void
+die(const char *msg)
+{
+    fprintf(stderr, "%s\n", msg);
+    exit(1);
+}
+
+static void
+diex(const char *msg)
+{
+    perror(msg);
+    exit(1);
+}
+
 #endif
