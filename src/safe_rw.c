@@ -15,8 +15,7 @@
 #include "safe_rw.h"
 
 ssize_t
-safe_write(const int fd, const void *const buf_, size_t count,
-           const int timeout)
+safe_write(const int fd, const void *const buf_, size_t count, const int timeout)
 {
     struct pollfd pfd;
     const char *  buf = (const char *) buf_;

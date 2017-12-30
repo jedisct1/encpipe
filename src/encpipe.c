@@ -1,9 +1,8 @@
 #include "encpipe_p.h"
 
 static struct option getopt_long_options[] = {
-    { "help", 0, NULL, 'h' },    { "decrypt", 0, NULL, 'd' },
-    { "encrypt", 0, NULL, 'e' }, { "in", 1, NULL, 'i' },
-    { "out", 1, NULL, 'o' },     { "p", 1, NULL, 'p' },
+    { "help", 0, NULL, 'h' }, { "decrypt", 0, NULL, 'd' }, { "encrypt", 0, NULL, 'e' },
+    { "in", 1, NULL, 'i' },   { "out", 1, NULL, 'o' },     { "p", 1, NULL, 'p' },
     { NULL, 0, NULL, 0 }
 };
 static const char *getopt_options = "hdei:o:p:";
@@ -32,8 +31,8 @@ options_parse(Context *ctx, int argc, char *argv[])
 #ifdef _OPTRESET
     optreset = 1;
 #endif
-    while ((opt_flag = getopt_long(argc, argv, getopt_options,
-                                   getopt_long_options, &option_index)) != -1) {
+    while ((opt_flag = getopt_long(argc, argv, getopt_options, getopt_long_options,
+                                   &option_index)) != -1) {
         switch (opt_flag) {
         case 'd':
             ctx->encrypt = 0;
@@ -67,11 +66,7 @@ file_open(const char *file, int create)
     if (file == NULL || (file[0] == '-' && file[1] == 0)) {
         return create ? STDOUT_FILENO : STDIN_FILENO;
     }
-    if (create) {
-        fd = open(file, O_CREAT | O_WRONLY | O_TRUNC, 0644);
-    } else {
-        fd = open(file, O_RDONLY);
-    }
+    fd = create ? open(file, O_CREAT | O_WRONLY | O_TRUNC, 0644) : open(file, O_RDONLY);
     if (fd == -1) {
         fprintf(stderr, "Unable to access [%s]: [%s]\n", file, strerror(errno));
         exit(1);
@@ -83,11 +78,10 @@ static void
 derive_key(Context *ctx)
 {
     static uint8_t master_key[hydro_pwhash_MASTERKEYBYTES] = { 0 };
-    size_t         password_len = strlen(ctx->password);
+    size_t         password_len                            = strlen(ctx->password);
 
-    if (hydro_pwhash_deterministic(ctx->key, sizeof ctx->key, ctx->password,
-                                   password_len, HYDRO_CONTEXT, master_key,
-                                   PWHASH_OPSLIMIT, PWHASH_MEMLIMIT,
+    if (hydro_pwhash_deterministic(ctx->key, sizeof ctx->key, ctx->password, password_len,
+                                   HYDRO_CONTEXT, master_key, PWHASH_OPSLIMIT, PWHASH_MEMLIMIT,
                                    PWHASH_THREADS) != 0) {
         fprintf(stderr, "Password hashing failed\n");
         exit(1);
@@ -108,17 +102,15 @@ stream_encrypt(Context *ctx)
     max_chunk_size = ctx->sizeof_buf - 4 - hydro_secretbox_HEADERBYTES;
     assert(max_chunk_size <= 0x7fffffff);
     chunk_id = 0;
-    while ((chunk_size =
-                safe_read_partial(ctx->fd_in, chunk, max_chunk_size)) >= 0) {
+    while ((chunk_size = safe_read_partial(ctx->fd_in, chunk, max_chunk_size)) >= 0) {
         STORE32_LE(chunk_size_p, (uint32_t) chunk_size);
-        if (hydro_secretbox_encrypt(chunk, chunk, chunk_size, chunk_id,
-                                    HYDRO_CONTEXT, ctx->key) != 0) {
+        if (hydro_secretbox_encrypt(chunk, chunk, chunk_size, chunk_id, HYDRO_CONTEXT, ctx->key) !=
+            0) {
             fprintf(stderr, "Encryption error\n");
             exit(1);
         }
         if (safe_write(ctx->fd_out, chunk_size_p,
-                       4 + hydro_secretbox_HEADERBYTES + (size_t) chunk_size,
-                       -1) < 0) {
+                       4 + hydro_secretbox_HEADERBYTES + (size_t) chunk_size, -1) < 0) {
             perror("write()");
             exit(1);
         }
@@ -151,22 +143,17 @@ stream_decrypt(Context *ctx)
     while ((readnb = safe_read(ctx->fd_in, chunk_size_p, 4)) == 4) {
         chunk_size = LOAD32_LE(chunk_size_p);
         if (chunk_size > max_chunk_size) {
-            fprintf(stderr, "Chunk size too large ([%zd] > [%zd])\n",
-                    chunk_size, max_chunk_size);
+            fprintf(stderr, "Chunk size too large ([%zd] > [%zd])\n", chunk_size, max_chunk_size);
             exit(1);
         }
-        if (safe_read(ctx->fd_in, chunk,
-                      (size_t) chunk_size + hydro_secretbox_HEADERBYTES) !=
+        if (safe_read(ctx->fd_in, chunk, (size_t) chunk_size + hydro_secretbox_HEADERBYTES) !=
             chunk_size + hydro_secretbox_HEADERBYTES) {
-            fprintf(stderr, "Chunk too short ([%zd] bytes expected)\n",
-                    chunk_size);
+            fprintf(stderr, "Chunk too short ([%zd] bytes expected)\n", chunk_size);
             exit(1);
         }
-        if (hydro_secretbox_decrypt(chunk, chunk,
-                                    chunk_size + hydro_secretbox_HEADERBYTES,
+        if (hydro_secretbox_decrypt(chunk, chunk, chunk_size + hydro_secretbox_HEADERBYTES,
                                     chunk_id, HYDRO_CONTEXT, ctx->key) != 0) {
-            fprintf(stderr, "Unable to decrypt chunk #%" PRIu64 " - ",
-                    chunk_id);
+            fprintf(stderr, "Unable to decrypt chunk #%" PRIu64 " - ", chunk_id);
             if (chunk_id == 0) {
                 fprintf(stderr, "Wrong password or key?\n");
             } else {
