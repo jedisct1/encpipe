@@ -26,16 +26,18 @@ store32_le(uint8_t dst[4], uint32_t w)
 }
 
 static void
-die(const char *msg)
+die(int print_errno, const char *format, ...)
 {
-    fprintf(stderr, "%s\n", msg);
-    exit(1);
-}
+    va_list ap;
 
-static void
-diex(const char *msg)
-{
-    perror(msg);
+    va_start(ap, format);
+    vfprintf(stderr, format, ap);
+    va_end(ap);
+    if (print_errno) {
+        fprintf(stderr, "- %s", strerror(errno));
+    }
+    fprintf(stderr, "\n");
+
     exit(1);
 }
 

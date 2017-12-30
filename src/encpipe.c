@@ -68,8 +68,7 @@ file_open(const char *file, int create)
     }
     fd = create ? open(file, O_CREAT | O_WRONLY | O_TRUNC, 0644) : open(file, O_RDONLY);
     if (fd == -1) {
-        fprintf(stderr, "Unable to access [%s]: [%s]\n", file, strerror(errno));
-        exit(1);
+        die(1, "Unable to access [%s]", file);
     }
     return fd;
 }
@@ -83,7 +82,7 @@ derive_key(Context *ctx)
     if (hydro_pwhash_deterministic(ctx->key, sizeof ctx->key, ctx->password, password_len,
                                    HYDRO_CONTEXT, master_key, PWHASH_OPSLIMIT, PWHASH_MEMLIMIT,
                                    PWHASH_THREADS) != 0) {
-        die("Password hashing failed");
+        die(0, "Password hashing failed");
     }
     hydro_memzero(ctx->password, password_len);
 }
@@ -105,11 +104,11 @@ stream_encrypt(Context *ctx)
         STORE32_LE(chunk_size_p, (uint32_t) chunk_size);
         if (hydro_secretbox_encrypt(chunk, chunk, chunk_size, chunk_id, HYDRO_CONTEXT, ctx->key) !=
             0) {
-            die("Encryption error");
+            die(0, "Encryption error");
         }
         if (safe_write(ctx->fd_out, chunk_size_p,
                        4 + hydro_secretbox_HEADERBYTES + (size_t) chunk_size, -1) < 0) {
-            diex("write()");
+            die(1, "write()");
         }
         if (chunk_size == 0) {
             break;
@@ -117,7 +116,7 @@ stream_encrypt(Context *ctx)
         chunk_id++;
     }
     if (chunk_size < 0) {
-        diex("read()");
+        die(1, "read()");
     }
     return 0;
 }
@@ -139,36 +138,34 @@ stream_decrypt(Context *ctx)
     while ((readnb = safe_read(ctx->fd_in, chunk_size_p, 4)) == 4) {
         chunk_size = LOAD32_LE(chunk_size_p);
         if (chunk_size > max_chunk_size) {
-            fprintf(stderr, "Chunk size too large ([%zd] > [%zd])\n", chunk_size, max_chunk_size);
-            exit(1);
+            die(0, "Chunk size too large ([%zd] > [%zd])", chunk_size, max_chunk_size);
         }
         if (safe_read(ctx->fd_in, chunk, (size_t) chunk_size + hydro_secretbox_HEADERBYTES) !=
             chunk_size + hydro_secretbox_HEADERBYTES) {
-            fprintf(stderr, "Chunk too short ([%zd] bytes expected)\n", chunk_size);
-            exit(1);
+            die(0, "Chunk too short ([%zd] bytes expected)", chunk_size);
         }
         if (hydro_secretbox_decrypt(chunk, chunk, chunk_size + hydro_secretbox_HEADERBYTES,
                                     chunk_id, HYDRO_CONTEXT, ctx->key) != 0) {
             fprintf(stderr, "Unable to decrypt chunk #%" PRIu64 " - ", chunk_id);
             if (chunk_id == 0) {
-                die("Wrong password or key?");
+                die(0, "Wrong password or key?");
             } else {
-                die("Corrupted or incomplete file?");
+                die(0, "Corrupted or incomplete file?");
             }
         }
         if (chunk_size == 0) {
             break;
         }
         if (safe_write(ctx->fd_out, chunk, chunk_size, -1) < 0) {
-            diex("write()");
+            die(1, "write()");
         }
         chunk_id++;
     }
     if (readnb < 0) {
-        diex("read()");
+        die(1, "read()");
     }
     if (chunk_size != 0) {
-        die("Premature end of file");
+        die(0, "Premature end of file");
     }
     return 0;
 }
@@ -179,7 +176,7 @@ main(int argc, char *argv[])
     Context ctx;
 
     if (hydro_init() < 0) {
-        diex("Unable to initialize the crypto library");
+        die(1, "Unable to initialize the crypto library");
     }
     memset(&ctx, 0, sizeof ctx);
     options_parse(&ctx, argc, argv);
@@ -191,7 +188,7 @@ main(int argc, char *argv[])
         ctx.sizeof_buf = MAX_BUFFER_SIZE;
     }
     if ((ctx.buf = malloc(ctx.sizeof_buf)) == NULL) {
-        diex("malloc()");
+        die(1, "malloc()");
     }
     assert(sizeof HYDRO_CONTEXT == hydro_secretbox_CONTEXTBYTES);
 
