@@ -41,8 +41,11 @@ a submodule. There is nothing to install.
 # Installation
 
 ```sh
-make install
+make
+sudo make install
 ```
+
+[Precompiled, static binaries for Linux](https://github.com/jedisct1/encpipe/releases/latest) are also available.
 
 # Why
 
