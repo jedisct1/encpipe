@@ -29,11 +29,8 @@ encpipe -e -p password -i /etc/passwd | nc 127.0.0.1 6666
 
 # Dependencies
 
-[libhydrogen](https://github.com/jedisct1/libhydrogen) - Install with
-`make install`
-
-The library gets statically linked, so the resulting binary doesn't
-have any dependencies besides the standard C library.
+None. It includes [libhydrogen](https://github.com/jedisct1/libhydrogen) as
+a submodule. There is nothing to install.
 
 # Installation
 

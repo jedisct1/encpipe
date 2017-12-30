@@ -1,0 +1,3 @@
+[submodule "ext/libhydrogen"]
+	path = ext/libhydrogen
+	url = https://github.com/jedisct1/libhydrogen
