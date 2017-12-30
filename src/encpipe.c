@@ -106,8 +106,8 @@ stream_encrypt(Context *ctx)
             0) {
             die(0, "Encryption error");
         }
-        if (safe_write(ctx->fd_out, chunk_size_p,
-                       4 + hydro_secretbox_HEADERBYTES + (size_t) chunk_size, -1) < 0) {
+        if (safe_write(ctx->fd_out, chunk_size_p, 4 + hydro_secretbox_HEADERBYTES + chunk_size,
+                       -1) < 0) {
             die(1, "write()");
         }
         if (chunk_size == 0) {
@@ -140,7 +140,7 @@ stream_decrypt(Context *ctx)
         if (chunk_size > max_chunk_size) {
             die(0, "Chunk size too large ([%zd] > [%zd])", chunk_size, max_chunk_size);
         }
-        if (safe_read(ctx->fd_in, chunk, (size_t) chunk_size + hydro_secretbox_HEADERBYTES) !=
+        if (safe_read(ctx->fd_in, chunk, chunk_size + hydro_secretbox_HEADERBYTES) !=
             chunk_size + hydro_secretbox_HEADERBYTES) {
             die(0, "Chunk too short ([%zd] bytes expected)", chunk_size);
         }
