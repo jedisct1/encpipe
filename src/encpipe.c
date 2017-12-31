@@ -149,7 +149,7 @@ read_password_file(Context *ctx, const char *file)
     while (password_len > 0 &&
            (password[password_len - 1] == ' ' || password[password_len - 1] == '\r' ||
             password[password_len - 1] == '\n')) {
-        password[--password_len] = 0;
+        password_len--;
     }
     while (password_len > 0 && (*password == ' ' || *password == '\r' || *password == '\n')) {
         password++;
