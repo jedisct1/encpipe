@@ -20,6 +20,10 @@ encpipe -d -p password -i inputfile -o outputfile
 `-i` and `-o` can be set to `-` or omitted to read/write from the
 standard input/output.
 
+`-P password_file` can be used to read the password from a file.
+
+If you don't feel inspired, `-G` prints a random password.
+
 Example - encrypted file transfer:
 
 ```sh
@@ -52,9 +56,3 @@ Use `gmake` instead of `make` on BSD systems.
 # Why
 
 It was faster to write than remember how to use GnuPG and OpenSSL.
-
-# Yes
-
-It's using passwords. Provided on the command-line. Yes, it actually
-does that. I needed that. Right now. Other options will be
-implemented. Next year.

@@ -1,61 +1,23 @@
 #include "encpipe_p.h"
 
 static struct option getopt_long_options[] = {
-    { "help", 0, NULL, 'h' }, { "decrypt", 0, NULL, 'd' }, { "encrypt", 0, NULL, 'e' },
-    { "in", 1, NULL, 'i' },   { "out", 1, NULL, 'o' },     { "p", 1, NULL, 'p' },
-    { NULL, 0, NULL, 0 }
+    { "help", 0, NULL, 'h' },     { "decrypt", 0, NULL, 'd' }, { "encrypt", 0, NULL, 'e' },
+    { "in", 1, NULL, 'i' },       { "out", 1, NULL, 'o' },     { "pass", 1, NULL, 'p' },
+    { "passfile", 1, NULL, 'P' }, { "passgen", 0, NULL, 'G' }, { NULL, 0, NULL, 0 }
 };
-static const char *getopt_options = "hdei:o:p:";
+static const char *getopt_options = "hdeGi:o:p:P:";
 
 static void
 usage(void)
 {
     puts(
         "Usage:\n\n"
-        "Encrypt: encpipe -e -p <password> [-i <inputfile>] [-o <outputfile>]\n"
-        "Decrypt: encpipe -d -p <password> [-i <inputfile>] [-o <outputfile>]");
+        "Encrypt: encpipe -e -p <password>      [-i <inputfile>] [-o <outputfile>]\n"
+        "         encpipe -e -P <password file> [-i <inputfile>] [-o <outputfile>]\n\n"
+        "Decrypt: encpipe -d -p <password>      [-i <inputfile>] [-o <outputfile>]\n"
+        "         encpipe -d -P <password file> [-i <inputfile>] [-o <outputfile>]\n\n"
+        "Passgen: encpipe -G\n");
     exit(0);
-}
-
-static void
-options_parse(Context *ctx, int argc, char *argv[])
-{
-    int opt_flag;
-    int option_index = 0;
-
-    ctx->encrypt  = -1;
-    ctx->in       = NULL;
-    ctx->out      = NULL;
-    ctx->password = NULL;
-    optind        = 0;
-#ifdef _OPTRESET
-    optreset = 1;
-#endif
-    while ((opt_flag = getopt_long(argc, argv, getopt_options, getopt_long_options,
-                                   &option_index)) != -1) {
-        switch (opt_flag) {
-        case 'd':
-            ctx->encrypt = 0;
-            break;
-        case 'e':
-            ctx->encrypt = 1;
-            break;
-        case 'i':
-            ctx->in = optarg;
-            break;
-        case 'o':
-            ctx->out = optarg;
-            break;
-        case 'p':
-            ctx->password = optarg;
-            break;
-        default:
-            usage();
-        }
-    }
-    if (ctx->password == NULL || ctx->encrypt == -1) {
-        usage();
-    }
 }
 
 static int
@@ -74,17 +36,20 @@ file_open(const char *file, int create)
 }
 
 static void
-derive_key(Context *ctx)
+derive_key(Context *ctx, char *password, size_t password_len)
 {
     static uint8_t master_key[hydro_pwhash_MASTERKEYBYTES] = { 0 };
-    size_t         password_len                            = strlen(ctx->password);
 
-    if (hydro_pwhash_deterministic(ctx->key, sizeof ctx->key, ctx->password, password_len,
-                                   HYDRO_CONTEXT, master_key, PWHASH_OPSLIMIT, PWHASH_MEMLIMIT,
+    if (ctx->has_key) {
+        die(0, "A single key is enough");
+    }
+    if (hydro_pwhash_deterministic(ctx->key, sizeof ctx->key, password, password_len, HYDRO_CONTEXT,
+                                   master_key, PWHASH_OPSLIMIT, PWHASH_MEMLIMIT,
                                    PWHASH_THREADS) != 0) {
         die(0, "Password hashing failed");
     }
-    hydro_memzero(ctx->password, password_len);
+    hydro_memzero(password, password_len);
+    ctx->has_key = 1;
 }
 
 static int
@@ -170,6 +135,95 @@ stream_decrypt(Context *ctx)
     return 0;
 }
 
+static int
+read_password_file(Context *ctx, const char *file)
+{
+    char    password_[512], *password = password_;
+    ssize_t password_len;
+    int     fd;
+
+    fd = file_open(file, 0);
+    if ((password_len = safe_read(fd, password, sizeof password_)) < 0) {
+        die(1, "Unable to read the password");
+    }
+    while (password_len > 0 &&
+           (password[password_len - 1] == ' ' || password[password_len - 1] == '\r' ||
+            password[password_len - 1] == '\n')) {
+        password[--password_len] = 0;
+    }
+    while (password_len > 0 && (*password == ' ' || *password == '\r' || *password == '\n')) {
+        password++;
+        password_len--;
+    }
+    if (password_len <= 0) {
+        die(0, "Empty password");
+    }
+    close(fd);
+    derive_key(ctx, password, password_len);
+
+    return 0;
+}
+
+static void
+passgen(void)
+{
+    unsigned char password[32];
+    char          hex[32 * 2 + 1];
+
+    randombytes_buf(password, sizeof password);
+    hydro_bin2hex(hex, sizeof hex, password, sizeof password);
+    puts(hex);
+    hydro_memzero(password, sizeof password);
+    hydro_memzero(hex, sizeof hex);
+    exit(0);
+}
+
+static void
+options_parse(Context *ctx, int argc, char *argv[])
+{
+    int opt_flag;
+    int option_index = 0;
+
+    ctx->encrypt = -1;
+    ctx->in      = NULL;
+    ctx->out     = NULL;
+    optind       = 0;
+#ifdef _OPTRESET
+    optreset = 1;
+#endif
+    while ((opt_flag = getopt_long(argc, argv, getopt_options, getopt_long_options,
+                                   &option_index)) != -1) {
+        switch (opt_flag) {
+        case 'd':
+            ctx->encrypt = 0;
+            break;
+        case 'e':
+            ctx->encrypt = 1;
+            break;
+        case 'G':
+            passgen();
+            break;
+        case 'i':
+            ctx->in = optarg;
+            break;
+        case 'o':
+            ctx->out = optarg;
+            break;
+        case 'p':
+            derive_key(ctx, optarg, strlen(optarg));
+            break;
+        case 'P':
+            read_password_file(ctx, optarg);
+            break;
+        default:
+            usage();
+        }
+    }
+    if (ctx->has_key == 0 || ctx->encrypt == -1) {
+        usage();
+    }
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -180,7 +234,6 @@ main(int argc, char *argv[])
     }
     memset(&ctx, 0, sizeof ctx);
     options_parse(&ctx, argc, argv);
-    derive_key(&ctx);
     ctx.sizeof_buf = DEFAULT_BUFFER_SIZE;
     if (ctx.sizeof_buf < MIN_BUFFER_SIZE) {
         ctx.sizeof_buf = MIN_BUFFER_SIZE;

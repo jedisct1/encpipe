@@ -32,13 +32,13 @@
 typedef struct Context_ {
     char *         in;
     char *         out;
-    char *         password;
     unsigned char  key[hydro_secretbox_KEYBYTES];
     unsigned char *buf;
     size_t         sizeof_buf;
     int            fd_in;
     int            fd_out;
     int            encrypt;
+    int            has_key;
 } Context;
 
 #endif
