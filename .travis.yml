@@ -1,0 +1,15 @@
+sudo: false
+
+language: c
+
+os:
+ - linux
+ - osx
+
+compiler:
+ - clang
+ - gcc
+ - g++
+
+script:
+ - make test
