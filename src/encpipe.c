@@ -240,7 +240,7 @@ main(int argc, char *argv[])
     } else if (ctx.sizeof_buf > MAX_BUFFER_SIZE) {
         ctx.sizeof_buf = MAX_BUFFER_SIZE;
     }
-    if ((ctx.buf = malloc(ctx.sizeof_buf)) == NULL) {
+    if ((ctx.buf = (unsigned char *) malloc(ctx.sizeof_buf)) == NULL) {
         die(1, "malloc()");
     }
     assert(sizeof HYDRO_CONTEXT == hydro_secretbox_CONTEXTBYTES);
