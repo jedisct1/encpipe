@@ -3,8 +3,6 @@ WFLAGS ?= -Wall -Wextra -Wmissing-prototypes -Wdiv-by-zero -Wbad-function-cast -
 CFLAGS ?= -Os -march=native -fno-exceptions $(WFLAGS)
 CFLAGS += -I. -Iext/libhydrogen
 OBJ = ext/libhydrogen/hydrogen.o src/encpipe.o src/safe_rw.o
-AR ?= ar
-RANLIB ?= ranlib
 STRIP ?= strip
 
 SRC = \
@@ -18,6 +16,9 @@ SRC = \
 all: bin
 
 bin: encpipe
+
+.c.o:
+	$(CC) $(CFLAGS) -o $@ -c $<
 
 encpipe: $(OBJ)
 	$(CC) $(CFLAGS) -o encpipe $(OBJ)
@@ -41,3 +42,5 @@ clean:
 	rm -f encpipe $(OBJ)
 
 distclean: clean
+
+.SUFFIXES: .c .o
