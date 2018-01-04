@@ -49,8 +49,6 @@ make
 sudo make install
 ```
 
-[Precompiled, static binaries for Linux](https://github.com/jedisct1/encpipe/releases/latest) are also available.
-
 # Why
 
 It was faster to write than remember how to use GnuPG and OpenSSL.
