@@ -170,7 +170,7 @@ passgen(void)
     unsigned char password[32];
     char          hex[32 * 2 + 1];
 
-    randombytes_buf(password, sizeof password);
+    hydro_random_buf(password, sizeof password);
     hydro_bin2hex(hex, sizeof hex, password, sizeof password);
     puts(hex);
     hydro_memzero(password, sizeof password);
