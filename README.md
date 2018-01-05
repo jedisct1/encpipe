@@ -39,8 +39,8 @@ zstd -5 -v -c "$FILE" | encpipe -e -p "$PASSWD" -o "${FILE}.zstd.encpipe"
 
 # Dependencies
 
-None. It includes [libhydrogen](https://github.com/jedisct1/libhydrogen) as
-a submodule. There is nothing to install.
+None. It includes [libhydrogen](https://libhydrogen.org) as a
+submodule. There is nothing to install.
 
 # Installation
 
