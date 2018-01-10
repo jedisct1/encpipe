@@ -11,12 +11,19 @@ static void
 usage(void)
 {
     puts(
-        "Usage:\n\n"
-        "Encrypt: encpipe -e -p <password>      [-i <inputfile>] [-o <outputfile>]\n"
-        "         encpipe -e -P <password file> [-i <inputfile>] [-o <outputfile>]\n\n"
-        "Decrypt: encpipe -d -p <password>      [-i <inputfile>] [-o <outputfile>]\n"
-        "         encpipe -d -P <password file> [-i <inputfile>] [-o <outputfile>]\n\n"
-        "Passgen: encpipe -G\n");
+        "Usage:\n"
+        "    encpipe -G\n"
+        "    encpipe {-e | -d} {-p <string> | -P <file>} [-i <file>] [-o <file>]\n"
+        "\n"
+        "Options:\n"
+        "    -G, --passgen          generate a random password\n"
+        "    -e, --encrypt          encryption mode\n"
+        "    -d, --decrypt          decryption mode\n"
+        "    -p, --pass <password>  use <password>\n"
+        "    -P, --passfile <file>  read password from <file>\n"
+        "    -i, --in <file>        read input from <file>\n"
+        "    -o, --out <file>       write output to <file>\n"
+        "    -h, --help             print this message");
     exit(0);
 }
 
