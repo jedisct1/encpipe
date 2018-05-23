@@ -20,7 +20,8 @@ encpipe -d -p password -i inputfile -o outputfile
 `-i` and `-o` can be set to `-` or omitted to read/write from the
 standard input/output.
 
-`-P password_file` can be used to read the password from a file.
+`-P password_file` can be used to read the password, or an arbitrary
+long key (that doesn't have to be text) from a file.
 
 If you don't feel inspired, `-G` prints a random password.
 
