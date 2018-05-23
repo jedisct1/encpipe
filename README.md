@@ -35,7 +35,7 @@ encpipe -e -p password -i /etc/passwd | nc 127.0.0.1 6666
 Example - compressed, encrypted archives:
 
 ```sh
-zstd -5 -v -c "$FILE" | encpipe -e -p "$PASSWD" -o "${FILE}.zstd.encpipe"
+zstd -5 -v -c "$FILE" | encpipe -e -p "$PASSWD" -o "${FILE}.zst.encpipe"
 ```
 
 # Dependencies
