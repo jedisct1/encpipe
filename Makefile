@@ -26,7 +26,7 @@ encpipe: $(OBJ)
 	$(CC) $(CFLAGS) -o encpipe $(OBJ)
 
 ext/libhydrogen/hydrogen.c:
-	git submodule update --init
+	gidt submodule update --init || echo "** Make sure you cloned the repository **" >&2
 
 install: all
 	-$(STRIP) --strip-all encpipe 2> /dev/null || $(STRIP) encpipe 2> /dev/null
