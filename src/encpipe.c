@@ -24,7 +24,7 @@ usage(void)
         "    -i, --in <file>        read input from <file>\n"
         "    -o, --out <file>       write output to <file>\n"
         "    -h, --help             print this message");
-    exit(0);
+    exit(2);
 }
 
 static int
