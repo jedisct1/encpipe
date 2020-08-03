@@ -1,3 +1,5 @@
+![CodeQL scan](https://github.com/jedisct1/encpipe/workflows/CodeQL%20scan/badge.svg)
+
 Encpipe
 =======
 
