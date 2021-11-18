@@ -1,6 +1,6 @@
 PREFIX ?= /usr/local
 WFLAGS ?= -Wall -Wextra -Wmissing-prototypes -Wdiv-by-zero -Wbad-function-cast -Wcast-align -Wcast-qual -Wfloat-equal -Wmissing-declarations -Wnested-externs -Wno-unknown-pragmas -Wpointer-arith -Wredundant-decls -Wstrict-prototypes -Wswitch-enum -Wno-type-limits
-CFLAGS ?= -O3 -march=native -fno-exceptions -flto $(WFLAGS)
+CFLAGS ?= -O3 -mtune=native -fno-exceptions -flto $(WFLAGS)
 CPPFLAGS += -I. -Iext/libhydrogen
 STRIP ?= strip
 
