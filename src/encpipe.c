@@ -172,6 +172,26 @@ read_password_file(Context *ctx, const char *file)
 }
 
 static void
+read_password_from_terminal(Context *ctx)
+{
+    char  password[512];
+    char *p;
+
+    printf("Password: ");
+    fflush(stdout);
+    if (fgets(password, sizeof password, stdin) == NULL) {
+        die(1, "fgets()");
+    }
+    if ((p = strchr(password, '\r')) != NULL) {
+        *p = 0;
+    }
+    if ((p = strchr(password, '\n')) != NULL) {
+        *p = 0;
+    }
+    derive_key(ctx, password, strlen(password));
+}
+
+static void
 passgen(void)
 {
     unsigned char password[32];
@@ -209,7 +229,7 @@ options_parse(Context *ctx, int argc, char *argv[])
             break;
         case 'G':
             passgen();
-            break;
+            break; /* NOTREACHED */
         case 'i':
             ctx->in = optarg;
             break;
@@ -226,8 +246,11 @@ options_parse(Context *ctx, int argc, char *argv[])
             usage();
         }
     }
-    if (ctx->has_key == 0 || ctx->encrypt == -1) {
+    if (ctx->encrypt == -1) {
         usage();
+    }
+    if (ctx->has_key == 0) {
+        read_password_from_terminal(ctx);
     }
 }
 
