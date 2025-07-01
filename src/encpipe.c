@@ -8,9 +8,9 @@ static struct option getopt_long_options[] = {
 static const char *getopt_options = "hdeGi:o:p:P:";
 
 static void
-usage(void)
+usage(FILE *stream)
 {
-    puts(
+    fputs(
         "Usage:\n"
         "    encpipe -G\n"
         "    encpipe {-e | -d} {-p <string> | -P <file>} [-i <file>] [-o <file>]\n"
@@ -23,7 +23,8 @@ usage(void)
         "    -P, --passfile <file>  read password from <file>\n"
         "    -i, --in <file>        read input from <file>\n"
         "    -o, --out <file>       write output to <file>\n"
-        "    -h, --help             print this message");
+        "    -h, --help             print this message\n",
+        stream);
     exit(2);
 }
 
@@ -230,6 +231,9 @@ options_parse(Context *ctx, int argc, char *argv[])
         case 'G':
             passgen();
             break; /* NOTREACHED */
+        case 'h':
+            usage(stdout);
+            break; /* NOTREACHED */
         case 'i':
             ctx->in = optarg;
             break;
@@ -243,11 +247,11 @@ options_parse(Context *ctx, int argc, char *argv[])
             read_password_file(ctx, optarg);
             break;
         default:
-            usage();
+            usage(stderr);
         }
     }
     if (ctx->encrypt == -1) {
-        usage();
+        usage(stderr);
     }
     if (ctx->has_key == 0) {
         read_password_from_terminal(ctx);
